@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Sudoku Solver" />
+    <meta property="og:title" content="Sudoku Solver" />
+    <meta
+      property="og:url"
+      content="https:/fajaralmu.github.io/sudoku-solver/"
+    />
+    <meta property="og:description" content="sudoku-solver" />
+    <meta property="og:site_name" content="sudoku-solver" />
+    <!-- <meta
+      property="og:image"
+      itemprop="image"
+      content="http:/kafila.sch.id/assets/img/kiis-stroke.png"
+    /> -->
+    <meta property="og:type" content="website" />
+
+    <title>Sudoku Solver</title>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"></script> -->
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <script src="js/jquery-3.3.1.slim.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/html.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/dialogs.js"></script>
+    <script type="text/javascript"></script>
+    <style>
+        .container{
+            border: solid 1px #cccccc;
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 10px;
+            min-height: 300px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 10px;
+        }
+        #sudoku-table{
+            margin-top: 10px;
+            margin-left: auto;
+            margin-right: auto
+        }
+        .sudoku-cell{
+            padding: 2px;
+            border: solid 1px #cccccc;
+            width: 70px;
+            height: 70px;
+            text-align: center;
+        }
+    </style>
+
+    <link rel="icon" href="assets/icon.ico"
+    type="image/x-icon">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">Sudoku Solver</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+      <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
+        <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+          <li class="nav-item active">
+            <a class="nav-link" href="#"  >Sudoku</a>
+          </li> 
+      </div>
+    </nav>
+    <div class="container">
+        <div class="row">
+            <p class="col-12">Input Sudoku Size</p>
+            <div class="col-6">
+                <input id="input-sudoku-size" class="form-control" type="number" min="2"  placeholder="Sudoku Size"/>
+            </div>
+            <div class="col-6">
+                <button class="btn btn-info" onclick="createTable()">Submit</button>
+                <button class="btn btn-success" onclick="solve()">Solve</button>
+            </div>
+        </div>
+        <table  id="sudoku-table">
+
+        </table>
+    </div>
+    <div class="footer">
+        <h4>fajaralmu 2020</h4>
+    </div>
+  </body>
+  <script type="text/javascript">
+    const inputSize = byId("input-sudoku-size");
+    const sudokuTable = byId("sudoku-table");
+    var sudokuSize = 0;
+    var sudokuValues = [];
+    var populatedValues = {};
+
+    function createTable(){
+        if(inputSize.value < 1){
+            alert("invalid size");
+            return;
+        }
+        setSudokuValues();
+        createSudokuTable();
+        // confirmDialog("Create table?").then(function(accept){
+        //     if(accept){
+        //         createSudokuTable();
+        //     }
+        // });
+    }
+
+    function setSudokuValues(){
+        sudokuValues = [];
+        sudokuSize = parseInt(inputSize.value);
+        for (let i = 1; i <= sudokuSize; i++) {
+            sudokuValues.push(i);       
+        }
+    }
+
+    function createSudokuTable(){
+        sudokuTable.innerHTML = "";
+        const size = sudokuSize;
+        for (let row = 1; row <= size; row++) {
+            const sudokuRow = document.createElement("tr");
+            for (let column = 1; column <= size; column++) {
+                const cell = createHtmlTag({
+                    tagName:'td',
+                    className:'sudoku-cell',
+                   // innerHTML: row+' '+column,
+                    ch0: {
+                        tagName:'input',
+                        id:'sudoku-value-'+row+"-"+column,
+                        row: row,
+                        column: column,
+                        className: 'form-control sudoku-cell', 
+                        onkeyup: function(e){
+                            if(!checkSudokuCellValue(e)){
+                                e.target.value = null;
+                            }
+                        }
+                    }
+                });
+                sudokuRow.appendChild(cell);
+            }
+            sudokuTable.appendChild(sudokuRow);
+        }
+    }
+
+    function checkSudokuCellValue(e){
+        if(isNaN(e.target.value) || (e.target.value) > sudokuSize || parseInt(e.target.value) < 0) {
+           return false;
+        }
+        
+        const value = e.target.value;
+        const row = parseInt(e.target.getAttribute("row"));
+        const column = parseInt(e.target.getAttribute("column"));
+        e.target.value = null;
+        setSudokuCellValues();
+        if(isValidValue(row, column, e.target.value) == false){
+           return false;
+        }
+       
+        return true;
+    }
+
+    function isValidValue(currentRow, currentColumn, value){
+        const theRowValues = populatedValues[currentRow];
+        
+        //check the row
+        for (const key in theRowValues) {
+           
+            if (theRowValues.hasOwnProperty(key)) {
+                const element = theRowValues[key];
+                console.debug("theRowValues  ", key, ":", theRowValues[key])
+                if(parseInt(element) == parseInt(value)){
+                    return false;
+                }
+            }
+        }
+
+        //check the column
+        for (const row in populatedValues) {
+            if(row == parseInt(currentRow)){
+                continue;
+            }
+            if (populatedValues.hasOwnProperty(row)) {
+                console.debug("populatedValues  ", row, ":", populatedValues[row])
+                const element = populatedValues[row];
+                const columnValue = element[currentColumn];
+                if(columnValue == parseInt(value))
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    function setSudokuCellValues(){
+        populatedValues = {};
+        for (let row = 1;  row <= sudokuSize; row++) { 
+            populatedValues[row] = {};
+            for (let column = 1; column <= sudokuSize; column++) {
+                 const cellValue = byId("sudoku-value-"+row+"-"+column);
+                 if(cellValue.value && parseInt(cellValue.value )>0){
+                    populatedValues[row][column] = parseInt(cellValue.value) ;
+                 }
+            }
+        }
+
+        return populatedValues;
+    }
+
+    function solve(){
+        setSudokuCellValues();
+    }
+</script>
+</html>

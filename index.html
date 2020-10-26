@@ -78,7 +78,9 @@
             <div class="col-6">
                 <button class="btn btn-info" onclick="createTable()">Submit</button>
                 <button class="btn btn-success" onclick="solve()">Solve</button>
+                <button class="btn btn-danger" onclick="reset()">Reset</button>
             </div>
+            <div class="col-12"><h3 id="loader"></h3></div>
         </div>
         <table  id="sudoku-table">
 
@@ -91,6 +93,7 @@
   <script type="text/javascript">
     const inputSize = byId("input-sudoku-size");
     const sudokuTable = byId("sudoku-table");
+    const loader = byId("loader");
     var sudokuSize = 0;
     var sudokuValues = [];
     var populatedValues = {};
@@ -118,6 +121,7 @@
     }
 
     function createSudokuTable(){
+        populatedValues = {};
         sudokuTable.innerHTML = "";
         const size = sudokuSize;
         for (let row = 1; row <= size; row++) {
@@ -155,12 +159,21 @@
         const row = parseInt(e.target.getAttribute("row"));
         const column = parseInt(e.target.getAttribute("column"));
         e.target.value = null;
-        setSudokuCellValues();
+       
         if(isValidValue(row, column, value) == false){
            return false;
         }
-        e.target.value = value;
+        setSudokuCellValue(row, column, value);
         return true;
+    }
+
+    function setSudokuCellValue(row, column, value){
+        const cellValue = byId("sudoku-value-"+row+"-"+column);
+        cellValue.value = value;
+        if(!populatedValues[row]){
+            populatedValues[row] = {};
+        }
+        populatedValues[row][column] = parseInt(value);
     }
 
     function isValidValue(currentRow, currentColumn, value){
@@ -168,7 +181,7 @@
         
         //check the row
         for (const key in theRowValues) {
-           
+            
             if (theRowValues.hasOwnProperty(key)) {
                 const element = theRowValues[key];
                 console.debug("theRowValues  ", key, ":", theRowValues[key])
@@ -206,6 +219,8 @@
                  const cellValue = byId("sudoku-value-"+row+"-"+column);
                  if(cellValue.value && parseInt(cellValue.value )>0){
                     populatedValues[row][column] = parseInt(cellValue.value) ;
+                 } else {
+                    populatedValues[row][column]  = null;
                  }
             }
         }
@@ -213,8 +228,58 @@
         return populatedValues;
     }
 
+    function startLoading(){
+        loader.innerHTML = "Loading....";
+    }
+
+    function stopLoading(){
+        loader.innerHTML = "";
+    }
+
     function solve(){
+        startLoading(); 
+        
+        solvePromise().then(function(){
+            stopLoading();
+        });  
+    }
+
+    function solvePromise(){
+        return new Promise(function(res,rej){
+            doSolve(); 
+            res(0);
+        });
+    }
+
+    function doSolve(){
         setSudokuCellValues();
+        for (let row = 1; row <= sudokuSize; row++) {
+            for (let column = 1; column <= sudokuSize; column++) {
+                const cellValue = byId("sudoku-value-"+row+"-"+column);
+                if(populatedValues[row][column] == null){
+                     
+                    var finalVal = "-";
+                    var trial = 1;
+                    
+                    while(!isValidValue(row, column, trial)){ 
+                        trial++;
+                        if(trial > sudokuSize){
+                            trial = 1;
+                        }
+                    }   
+                    finalVal = trial;
+                    
+                    populatedValues[row][column] = finalVal;
+                    cellValue.value = finalVal;
+                } 
+            }
+        }
+
+    }
+
+    function reset(){
+        if(!confirm("Reset Sudoku?")){ return; } 
+        createSudokuTable();
     }
 </script>
 </html>

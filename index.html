@@ -80,7 +80,8 @@
                 <button class="btn btn-success" onclick="solve()">Solve</button>
                 <button class="btn btn-danger" onclick="reset()">Reset</button>
             </div>
-            <div class="col-12"><h3 id="loader"></h3></div>
+            <div class="col-12"><h3 align="center" id="loader"></h3></div>
+            <div class="col-12"><h3 align="center" id="iteration-info"></h3></div>
         </div>
         <table  id="sudoku-table">
 
@@ -94,6 +95,7 @@
     const inputSize = byId("input-sudoku-size");
     const sudokuTable = byId("sudoku-table");
     const loader = byId("loader");
+    const iterationInfo = byId("iteration-info");
     var sudokuSize = 0;
     var sudokuValues = [];
     var populatedValues = {};
@@ -184,7 +186,7 @@
             
             if (theRowValues.hasOwnProperty(key)) {
                 const element = theRowValues[key];
-                console.debug("theRowValues  ", key, ":", theRowValues[key])
+              //  console.debug("theRowValues  ", key, ":", theRowValues[key])
                 if(parseInt(element) == parseInt(value)){
                     return false;
                 }
@@ -200,7 +202,7 @@
                 
                 const element = populatedValues[row];
                 const columnValue = element[currentColumn];
-                console.debug("currentColumn ", currentColumn, ">>", row, ":", populatedValues[row], "columnValue: ", columnValue, parseInt(value));
+              //  console.debug("currentColumn ", currentColumn, ">>", row, ":", populatedValues[row], "columnValue: ", columnValue, parseInt(value));
 
                 if(columnValue == parseInt(value))
                 {
@@ -234,14 +236,25 @@
 
     function stopLoading(){
         loader.innerHTML = "";
+        iterationInfo.innerHTML = "";
+    }
+
+    function showIterationInfo(row, col, i, trial){
+        setTimeout(function(){
+            console.debug("Row: "+row+" Column: "+col+" i:"+i+" trial:"+trial);
+            iterationInfo.innerHTML = "Row: "+row+" Column: "+col+" i:"+i+" trial:"+trial;
+        }, 50);
+       
     }
 
     function solve(){
         startLoading(); 
-        
-        solvePromise().then(function(){
+        setTimeout(function(){
+            solvePromise().then(function(){
             stopLoading();
         });  
+         }, 100);
+       
     }
 
     function solvePromise(){
@@ -253,6 +266,7 @@
 
     function doSolve(){
         setSudokuCellValues();
+        var sequence = 0;
         for (let row = 1; row <= sudokuSize; row++) {
             for (let column = 1; column <= sudokuSize; column++) {
                 const cellValue = byId("sudoku-value-"+row+"-"+column);
@@ -263,9 +277,12 @@
                     
                     while(!isValidValue(row, column, trial)){ 
                         trial++;
+                        
                         if(trial > sudokuSize){
                             trial = 1;
                         }
+                        showIterationInfo(row, column, sequence, trial);
+                        sequence++;
                     }   
                     finalVal = trial;
                     

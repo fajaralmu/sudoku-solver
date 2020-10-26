@@ -158,9 +158,14 @@
         }
         
         const value = e.target.value;
+       
         const row = parseInt(e.target.getAttribute("row"));
         const column = parseInt(e.target.getAttribute("column"));
         e.target.value = null;
+        if(value == null || value == ""){
+            populatedValues[row][column] = null;
+            return false;
+        }
        
         if(isValidValue(row, column, value) == false){
            return false;

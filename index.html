@@ -156,10 +156,10 @@
         const column = parseInt(e.target.getAttribute("column"));
         e.target.value = null;
         setSudokuCellValues();
-        if(isValidValue(row, column, e.target.value) == false){
+        if(isValidValue(row, column, value) == false){
            return false;
         }
-       
+        e.target.value = value;
         return true;
     }
 
@@ -184,9 +184,11 @@
                 continue;
             }
             if (populatedValues.hasOwnProperty(row)) {
-                console.debug("populatedValues  ", row, ":", populatedValues[row])
+                
                 const element = populatedValues[row];
                 const columnValue = element[currentColumn];
+                console.debug("currentColumn ", currentColumn, ">>", row, ":", populatedValues[row], "columnValue: ", columnValue, parseInt(value));
+
                 if(columnValue == parseInt(value))
                 {
                     return false;

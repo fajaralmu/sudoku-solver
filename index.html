@@ -58,7 +58,7 @@
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="#">Sudoku Solver</a>
+        <a class="navbar-brand" href="#">Trying to Solve Sudoku</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
@@ -99,12 +99,17 @@
     var sudokuSize = 0;
     var sudokuValues = [];
     var populatedValues = {};
+    var editMode = true;
 
     function createTable(){
+        if(!confirm("start sudoku?")){
+            return;
+        }
         if(inputSize.value < 1){
             alert("invalid size");
             return;
         }
+        editMode = true;
         setSudokuValues();
         createSudokuTable();
         // confirmDialog("Create table?").then(function(accept){
@@ -142,6 +147,7 @@
                         onkeyup: function(e){
                             if(!checkSudokuCellValue(e)){
                                 e.target.value = null;
+                                cellValue.setAttribute("fixed", "false");
                             }
                         }
                     }
@@ -182,6 +188,10 @@
     function setSudokuCellValue(row, column, value){
         const cellValue = byId("sudoku-value-"+row+"-"+column);
         cellValue.value = value;
+        if(editMode){
+            cellValue.setAttribute("fixed", "true");
+        }
+        
         if(!populatedValues[row]){
             populatedValues[row] = {};
         }
@@ -233,7 +243,12 @@
             for (let column = 1; column <= sudokuSize; column++) {
                  const cellValue = byId("sudoku-value-"+row+"-"+column);
                  if(cellValue.value && parseInt(cellValue.value )>0){
-                    populatedValues[row][column] = parseInt(cellValue.value) ;
+                    populatedValues[row][column] = parseInt(cellValue.value);
+
+                    if(cellValue.getAttribute("fixed") == "true"){
+                        cellValue.setAttribute("disabled", "disabled");
+                    }
+                    
                  } else {
                     populatedValues[row][column]  = null;
                  }
@@ -301,6 +316,7 @@
     }
 
     function solve(){
+        editMode = false;
         startLoading(); 
         setTimeout(function(){
             solvePromise().then(function(){
@@ -329,8 +345,10 @@
                     
                     populatedValues[row][column] = trial;
                     cellValue.value = trial;
-                   // return false;
-                } 
+                    return false;
+                }  else {
+                     
+                }
             }
         }
 

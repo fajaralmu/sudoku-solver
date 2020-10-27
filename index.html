@@ -76,7 +76,7 @@
                 <input id="input-sudoku-size" class="form-control" type="number" min="2"  placeholder="Sudoku Size"/>
             </div>
             <div class="col-6">
-                <button class="btn btn-info" onclick="createTable()">Submit</button>
+                <button class="btn btn-info" onclick="createTable()">Start</button>
                 <button class="btn btn-success" onclick="solve()">Solve</button>
                 <button class="btn btn-danger" onclick="reset()">Reset</button>
             </div>
@@ -329,7 +329,7 @@
                     
                     populatedValues[row][column] = trial;
                     cellValue.value = trial;
-                    return false;
+                   // return false;
                 } 
             }
         }
